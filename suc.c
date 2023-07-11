@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <assert.h>
 #include <pwd.h>
 
 #define PATH "/var/lib/suc/"
@@ -16,7 +15,10 @@ int main(int argc, char** argv) {
     char timeString[256];
     char buffer[256];
 
-    assert(argc == 2);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <message_target>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
     // Get username from UID
     uid_t uid = getuid();
