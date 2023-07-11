@@ -2,9 +2,11 @@ all: suc
 
 suc: suc_wrapper.c
 	gcc -o suc suc_wrapper.c
+	gcc -o succ suc.c
 
 clean:
 	rm -f suc
+	rm -f succ
 
 install:
 	id -u suc || useradd --home-dir=/ --gid=suc --no-create-home --shell=/usr/bin/nologin suc
