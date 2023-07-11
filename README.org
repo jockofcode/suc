@@ -1,0 +1,37 @@
+#+title: SUC: the Simple UNIX Chat
+#+TOC: nil
+
+SUC is the simplest implementation of a chat system, relying on the kernel for
+authentication, access control, and synchronization.
+
+The core is basically a few lines of bash
+#+INCLUDE: "./suc.sh" src bash
+
+* Install
+** From source
+*** Dependencies
+An optional dependency on pygments, if you want to use =usuc=.
+*** Compile
+: make
+*** Install
+: sudo make install
+* Usage
+** Users
+=usuc <channel_name>=
+** Admins
+To be written
+- chown files to =suc=
+- Only members of the group will be able to read.
+- anyone to post
+* Internals
+To be written...
+* Manifest
+- README.org :: this file
+- suc.sh :: The core loop
+- suc_wrapper.c :: a wrapper for suc.sh, as most OSs forbid interpreted languages from running as their owner, despite the setuid bit being set
+- usuc :: The U stands for User. This is the script that handles text decorations, commands, etc.
+- Makefile :: Well you know...
+* Maintainers
+[[https://rdklein.fr][Edouard Klein]]
+* License
+  [[https://www.gnu.org/licenses/agpl-3.0.en.html][AGPLv3]] or later.

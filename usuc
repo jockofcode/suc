@@ -1,0 +1,30 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+# Autowrap self in rlwrap
+if [ -z "${RLWRAP:-}" ]
+then
+    RLWRAP=1 rlwrap "$0" "$@"
+    exit 0
+fi
+
+chan_owner=$(ls -l /var/lib/suc/"$1" | cut -d' ' -f 3)
+if [ "$chan_owner" != suc ]
+then
+    SUC=suc_"$chan_owner"
+else
+    SUC=suc
+fi
+# Tail the channel
+tail -f -n 20 /var/lib/suc/"$1"&
+while true
+do
+    read -r line || exit 0
+    if [ "${line::1}" == ":" ]
+    then
+        echo '*runs* `' "${line:1}" '`' | pygmentize -l md -f 256 | "$SUC" "$1"
+        bash -c "${line:1}" | "$SUC" "$1"
+    else
+        echo "$line" | pygmentize -l md -f 256 | "$SUC" "$1"
+    fi
+done
