@@ -4,49 +4,65 @@
 #include <time.h>
 #include <pwd.h>
 
-#define PATH "/var/lib/suc/"
+#define SUC_DIRECTORY_PATH "/var/lib/suc/"
 
-int main(int argc, char** argv) {
-    FILE *fp;
-    char filePath[256];
-    struct passwd *pw;
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-    char timeString[256];
-    char buffer[256];
+void print_usage_and_exit(char *program_name) {
+    fprintf(stderr, "Usage: %s <message_target>\n", program_name);
+    exit(EXIT_FAILURE);
+}
 
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <message_target>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    // Get username from UID
+char* get_current_username() {
     uid_t uid = getuid();
-    pw = getpwuid(uid);
-    if (pw == NULL) {
+    struct passwd *passwd_entry = getpwuid(uid);
+
+    if (passwd_entry == NULL) {
         perror("getpwuid");
         exit(EXIT_FAILURE);
     }
 
-    // Create formatted time string
-    strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &tm);
+    return passwd_entry->pw_name;
+}
 
-    // Create the file path
-    snprintf(filePath, sizeof(filePath), "%s%s", PATH, argv[1]);
+char* get_current_datetime() {
+    time_t current_time = time(NULL);
+    struct tm local_time = *localtime(&current_time);
+    static char datetime_string[256];
+    strftime(datetime_string, sizeof(datetime_string), "%Y-%m-%dT%H:%M:%S", &local_time);
 
-    // Open the file
-    fp = fopen(filePath, "a");
-    if (fp == NULL) {
+    return datetime_string;
+}
+
+FILE* open_message_target_file(char *message_target) {
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "%s%s", SUC_DIRECTORY_PATH, message_target);
+
+    FILE *file = fopen(filepath, "a");
+    if (file == NULL) {
         perror("Unable to open file");
         exit(EXIT_FAILURE);
     }
 
+    return file;
+}
+
+void write_messages_to_file(FILE *file, char *username) {
+    char buffer[256];
     while (fgets(buffer, sizeof(buffer), stdin)) {
-        // Write time, username, and message to the file
-        fprintf(fp, "%s %s %s", timeString, pw->pw_name, buffer);
+        fprintf(file, "%s %s %s", get_current_datetime(), username, buffer);
+    }
+}
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        print_usage_and_exit(argv[0]);
     }
 
-    fclose(fp);
+    char *username = get_current_username();
+    FILE *message_target_file = open_message_target_file(argv[1]);
+
+    write_messages_to_file(message_target_file, username);
+
+    fclose(message_target_file);
 
     return 0;
 }
